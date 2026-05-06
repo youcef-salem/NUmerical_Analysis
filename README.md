@@ -6,7 +6,7 @@
 ### AXE 2
 - [x] Gauss
 - [x] Decomposition LU
-- [ ] Cholevsky
+- [x] Cholevsky
 - [ ] gauss seidel
 - [ ] jacobi
 ### AXE 3
