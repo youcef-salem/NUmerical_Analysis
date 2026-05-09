@@ -7,10 +7,13 @@
 - [x] Gauss
 - [x] Decomposition LU
 - [x] Cholevsky
-- [ ] gauss seidel
-- [ ] jacobi
+- [x] gauss seidel
+- [x] jacobi
 ### AXE 3
 - [x] interpolation de lagrange
-- [ ] interpolation de newton
-- [ ] approximation
-- [ ] normes
+- [x] interpolation de newton
+- [x] approximation
+- [x] normes
+
+## PHASE 2
+- [x] Gui
