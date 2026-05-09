@@ -7,6 +7,16 @@ import matplotlib.pyplot as plt
 
 
 
+def spline_fit(x, y, s=1.0):
+    """Ajuste une spline de lissage aux donnees. Retourne l'objet spline."""
+    sp = inter.UnivariateSpline(x, y, s=s)
+    return sp
+
+def eval_spline(sp, t):
+    """Evalue la spline sur le tableau t."""
+    return sp(np.asarray(t))
+
+
 def poly_fit(x, y, d):
     """ajuste un polynome degre d aux donnees"""
     n = len(x)

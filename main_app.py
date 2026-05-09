@@ -566,6 +566,17 @@ class App(tk.Tk):
         tk.Button(approx_frame, text="Moindres carrés", width=26,
                   command=self._ax3_moindres_carres).pack(pady=3)
 
+        ttk.Separator(approx_frame, orient="horizontal").pack(fill="x", pady=(6, 4))
+
+        s_row = tk.Frame(approx_frame); s_row.pack(anchor="w", pady=(0, 4))
+        tk.Label(s_row, text="Lissage (s) :").pack(side="left")
+        self.ax3_spline_s_entry = tk.Entry(s_row, width=8)
+        self.ax3_spline_s_entry.insert(0, "1.0")
+        self.ax3_spline_s_entry.pack(side="left", padx=4)
+
+        tk.Button(approx_frame, text="Splines de lissage", width=26,
+                  command=self._ax3_splines).pack(pady=3)
+
         gd_frame = tk.LabelFrame(methods_row, text="Descente de gradient", padx=10, pady=8)
         gd_frame.pack(side="left", anchor="n")
 
@@ -718,6 +729,60 @@ class App(tk.Tk):
                            loc="center")
         tbl.auto_set_font_size(False); tbl.set_fontsize(9)
         ax_bot.set_title(f"Coefficients  (Erreur quadratique moyenne = {rmse:.6f})", pad=4)
+
+        plt.tight_layout(); plt.show()
+
+    # ── Splines de lissage ────────────────────────────────────────────────
+    def _ax3_splines(self):
+        x, y = self._ax3_parse_points()
+        if x is None: return
+
+        # need at least 4 points for a cubic spline
+        if len(x) < 4:
+            messagebox.showerror("Erreur",
+                "Les splines nécessitent au moins 4 points."); return
+
+        # x must be strictly increasing
+        if np.any(np.diff(x) <= 0):
+            messagebox.showerror("Erreur",
+                "Les valeurs de x doivent être strictement croissantes pour les splines."); return
+
+        try:
+            s = float(self.ax3_spline_s_entry.get())
+        except ValueError:
+            messagebox.showerror("Erreur", "Facteur de lissage (s) invalide."); return
+
+        from approximation import spline_fit, eval_spline
+        try:
+            sp = spline_fit(x, y, s=s)
+        except Exception as ex:
+            messagebox.showerror("Erreur", str(ex)); return
+
+        xx = np.linspace(x[0], x[-1], 400)
+        yy = eval_spline(sp, xx)
+        rmse = float(np.sqrt(np.mean((eval_spline(sp, x) - y)**2)))
+        knots = sp.get_knots()
+
+        fig, (ax_top, ax_bot) = plt.subplots(2, 1, figsize=(8, 8),
+                                              gridspec_kw={"height_ratios": [2, 1]})
+        fig.suptitle(f"Splines de lissage  —  s={s}")
+
+        self._ax3_base_plot(ax_top, x, y, f"Ajustement par spline (s={s})")
+        ax_top.plot(xx, yy, "m-", lw=2,
+                    label=f"Spline  (RMSE={rmse:.4f},  {len(knots)} nœuds internes)")
+        ax_top.plot(knots, eval_spline(sp, knots), "m^", markersize=7,
+                    label="Nœuds de la spline")
+        ax_top.legend()
+
+        # table: nœuds de la spline
+        ax_bot.axis("tight"); ax_bot.axis("off")
+        cell_data = [[f"{k:.6f}", f"{float(eval_spline(sp, k)):.6f}"] for k in knots]
+        tbl = ax_bot.table(cellText=cell_data,
+                           colLabels=["Nœud (x)", "Spline(x)"],
+                           loc="center")
+        tbl.auto_set_font_size(False); tbl.set_fontsize(9)
+        ax_bot.set_title(
+            f"Nœuds internes de la spline  (RMSE = {rmse:.6f})", pad=4)
 
         plt.tight_layout(); plt.show()
 
